@@ -1,0 +1,12 @@
+{
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"name" : "ddemetroulis/super",
+	"type" : "project",
+	"authors" : [{
+			"name" : "Daniel Demetroulis"
+	}],
+	"require": {
+		"codeigniter4/framework": "dev-master"
+	}
+}
