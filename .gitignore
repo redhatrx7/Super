@@ -2,4 +2,4 @@
 /*.project
 /*.lock
 /package-lock.json
-!/vendor/codeigniter4/framework
+/vendor/codeigniter4/framework/public/assets
