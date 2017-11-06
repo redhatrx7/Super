@@ -51,6 +51,7 @@ class Autoload extends \CodeIgniter\Config\AutoloadConfig
 		 */
 		$psr4 = [
 			'Config'                     => APPPATH.'Config',
+			APP_NAMESPACE.'\Core' 		 => APPPATH.'Core',
 			APP_NAMESPACE.'\Controllers' => APPPATH.'Controllers',
 			APP_NAMESPACE                => realpath(APPPATH),
 		];
