@@ -4,7 +4,8 @@
   "description": "super project",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "webpack --config webpack.config.js"
+    "dev": "webpack --config webpack.dev.config.js",
+    "prod": "webpack -p --config webpack.prod.config.js"
   },
   "repository": {
     "type": "git",
@@ -17,19 +18,21 @@
   },
   "homepage": "https://github.com/redhatrx7/Super#readme",
   "devDependencies": {
+    "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
+    "babel-polyfill": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
     "css-loader": "^0.28.7",
     "extract-text-webpack-plugin": "^3.0.1",
     "file-loader": "^1.1.5",
     "node-sass": "^4.5.3",
     "sass-loader": "^6.0.6",
     "style-loader": "^0.19.0",
+    "uglifyjs-webpack-plugin": "^1.0.1",
     "url-loader": "^0.6.2",
     "webpack": "^3.6.0",
-    "babel-core": "^6.26.0",
-    "babel-polyfill": "^6.26.0",
-    "babel-preset-react": "^6.24.1"
+    "webpack-merge": "^4.1.1"
   },
   "dependencies": {
     "bootstrap": "^4.0.0-alpha.6",
@@ -38,6 +41,7 @@
     "jquery": "^3.2.1",
     "popper.js": "^1.12.5",
     "react": "^16.0.0",
-    "react-dom": "^16.0.0"
+    "react-dom": "^16.0.0",
+    "webpack-cleanup-plugin": "^0.5.1"
   }
 }
