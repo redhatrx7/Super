@@ -32,8 +32,7 @@ class Logger extends BaseConfig
 	| your log files will fill up very fast.
 	|
 	*/
-
-	public $threshold = ( ENVIRONMENT === 'production' ? 4 : 9 );
+	public $threshold = 3;
 
 	/*
 	|--------------------------------------------------------------------------

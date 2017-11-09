@@ -6,16 +6,16 @@ use CodeIgniter\Database\MockConnection;
 class SelectTest extends \CIUnitTestCase
 {
 	protected $db;
-	
+
 	//--------------------------------------------------------------------
-	
-	public function setUp() 
+
+	public function setUp()
 	{
 	    $this->db = new MockConnection([]);
 	}
-	
+
 	//--------------------------------------------------------------------
-	
+
 	public function testSimpleSelect()
 	{
 	    $builder = new BaseBuilder('users', $this->db);
@@ -24,7 +24,7 @@ class SelectTest extends \CIUnitTestCase
 
 		$this->assertEquals($expected, str_replace("\n", ' ', $builder->getCompiledSelect()));
 	}
-	
+
 	//--------------------------------------------------------------------
 
 	public function testSelectOnlyOneColumn()
@@ -200,7 +200,8 @@ class SelectTest extends \CIUnitTestCase
 	{
 		$builder = new BaseBuilder('invoices', $this->db);
 
-		$this->setExpectedException('CodeIgniter\DatabaseException', 'The query you submitted is not valid.');
+		$this->expectException('\CodeIgniter\Database\Exceptions\DatabaseException');
+		$this->expectExceptionMessage('The query you submitted is not valid.');
 
 		$builder->selectSum('');
 	}

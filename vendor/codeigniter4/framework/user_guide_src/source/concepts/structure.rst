@@ -8,7 +8,7 @@ can change to meet the needs of your application.
 Default Directories
 ===================
 
-A fresh install has six directories: ``/application``, ``/system``, ``public``, 
+A fresh install has six directories: ``/application``, ``/system``, ``/public``, 
 ``/writable``, ``/tests`` and ``/docs``. 
 Each of these directories has a very specific part to play.
 
@@ -49,7 +49,7 @@ All files in this directory live under the ``CodeIgniter`` namespace.
 public
 ------
 
-The **public** folder holds the browser-acceible portion of your web application,
+The **public** folder holds the browser-accessible portion of your web application,
 preventing direct access to your source code.
 It contains the main **.htaccess** file, **index.php**, and any application 
 assets that you add, like CSS, javascript, or

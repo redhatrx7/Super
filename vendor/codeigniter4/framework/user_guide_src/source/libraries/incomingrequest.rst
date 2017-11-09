@@ -76,7 +76,7 @@ By default, the method is returned as a lower-case string (i.e. 'get', 'post', e
 uppercase version by passing in ``true`` as the only parameter::
 
 	// Returns 'GET'
-	$method = $request->method(true);
+	$method = $request->getMethod(true);
 
 You can also check if the request was made through and HTTPS connection with the ``isSecure()`` method::
 
@@ -118,7 +118,7 @@ maintaining the ability to control the order you look for it:
 
 **Getting JSON data**
 
-Finally, you can grab the contents of php://input as a JSON stream with ``getJSON()``.
+You can grab the contents of php://input as a JSON stream with ``getJSON()``.
 
 .. note::  This has no way of checking if the incoming data is valid JSON or not, you should only use this
     method if you know that you're expecting JSON.
@@ -131,7 +131,22 @@ By default, this will return any objects in the JSON data as objects. If you wan
 arrays, pass in ``true`` as the first parameter.
 
 The second and third parameters match up to the ``depth`` and ``options`` arguments of the
-`json_decode <http://php.net/manual/en/function.json-decode.php`_ PHP function.
+`json_decode <http://php.net/manual/en/function.json-decode.php>`_ PHP function.
+
+**Retrieving Raw data (PUT, PATCH, DELETE)**
+
+Finally, you can grab the contents of php://input as a raw stream with ``getRawInput()``.
+
+	$data = $request->getRawInput();
+
+This will retrieve data and convert it to an array. Like this::
+
+	var_dump($request->getRawInput());
+
+	[
+		'Param1' => 'Value1',
+		'Param2' => 'Value2'
+	]
 
 Filtering Input Data
 --------------------
@@ -158,9 +173,9 @@ an array of all headers, with the key as the name of the header, and the value b
 	var_dump($request->getHeaders());
 
 	[
-		'Host' => CodeIgniter\HTTP\Header,
+		'Host'          => CodeIgniter\HTTP\Header,
 		'Cache-Control' => CodeIgniter\HTTP\Header,
-		'Accept' => CodeIgniter\HTTP\Header,
+		'Accept'        => CodeIgniter\HTTP\Header,
 	]
 
 If you only need a single header, you can pass the name into the ``getHeader()`` method. This will grab the
@@ -263,10 +278,9 @@ Class Reference
 
 The methods provided by the parent classes that are available are:
 
-* :meth:`CodeIgniter\\HTTP\\Request::ipAddress`
+* :meth:`CodeIgniter\\HTTP\\Request::getIPAddress`
 * :meth:`CodeIgniter\\HTTP\\Request::validIP`
-* :meth:`CodeIgniter\\HTTP\\Request::method`
-* :meth:`CodeIgniter\\HTTP\\Request::getServer`
+* :meth:`CodeIgniter\\HTTP\\Request::getMethod`
 * :meth:`CodeIgniter\\HTTP\\Request::getServer`
 * :meth:`CodeIgniter\\HTTP\\Message::body`
 * :meth:`CodeIgniter\\HTTP\\Message::setBody`
@@ -302,10 +316,11 @@ The methods provided by the parent classes that are available are:
 		:returns: True if the request is an HTTPS request, otherwise false.
 		:rtype: bool
 
-	.. php:method:: getVar([$index = null[, $filter = null])
+	.. php:method:: getVar([$index = null[, $filter = null[, $flags = null]]])
 
 		:param  string  $index: The name of the variable/key to look for.
 		:param  int     $filter: The type of filter to apply. A list of filters can be found `here <http://php.net/manual/en/filter.filters.php>`_.
+		:param  int     $flags: Flags to apply. A list of flags can be found `here <http://php.net/manual/en/filter.filters.flags.php>`_.
 		:returns:   $_REQUEST if no parameters supplied, otherwise the REQUEST value if found, or null if not
 		:rtype: mixed|null
 
@@ -325,41 +340,44 @@ The methods provided by the parent classes that are available are:
 
 		To return all POST items and pass them through the filter, set the
 		first parameter to null while setting the second parameter to the filter
-		you want to use.::
+		you want to use::
 
 			$request->getVar(null, FILTER_SANITIZE_STRING); // returns all POST items with string sanitation
 
-		To return an array of multiple  POST parameters, pass all the required keys as an array.::
+		To return an array of multiple  POST parameters, pass all the required keys as an array::
 
 			$request->getVar(['field1', 'field2']);
 
 		Same rule applied here, to retrieve the parameters with filtering, set the second parameter to
-		the filter type to apply.::
+		the filter type to apply::
 
 			$request->getVar(['field1', 'field2'], FILTER_SANITIZE_STRING);
 
-	.. php:method:: getGet([$index = null[, $filter = null]])
+	.. php:method:: getGet([$index = null[, $filter = null[, $flags = null]]])
 
 		:param  string  $index: The name of the variable/key to look for.
 		:param  int  $filter: The type of filter to apply. A list of filters can be found `here <http://php.net/manual/en/filter.filters.php>`_.
+		:param  int     $flags: Flags to apply. A list of flags can be found `here <http://php.net/manual/en/filter.filters.flags.php>`_.
 		:returns:   $_GET if no parameters supplied, otherwise the GET value if found, or null if not
 		:rtype: mixed|null
 
 		This method is identical to ``getVar()``, only it fetches GET data.
 
-	.. php:method:: getPost([$index = null[, $filter = null]])
+	.. php:method:: getPost([$index = null[, $filter = null[, $flags = null]]])
 
 		:param  string  $index: The name of the variable/key to look for.
 		:param  int  $filter: The type of filter to apply. A list of filters can be found `here <http://php.net/manual/en/filter.filters.php>`_.
+		:param  int     $flags: Flags to apply. A list of flags can be found `here <http://php.net/manual/en/filter.filters.flags.php>`_.
 		:returns:   $_POST if no parameters supplied, otherwise the POST value if found, or null if not
 		:rtype: mixed|null
 
 			This method is identical to ``getVar()``, only it fetches POST data.
 
-	.. php:method:: getPostGet([$index = null[, $filter = null]])
+	.. php:method:: getPostGet([$index = null[, $filter = null[, $flags = null]]])
 
 		:param  string  $index: The name of the variable/key to look for.
 		:param  int     $filter: The type of filter to apply. A list of filters can be found `here <http://php.net/manual/en/filter.filters.php>`_.
+		:param  int     $flags: Flags to apply. A list of flags can be found `here <http://php.net/manual/en/filter.filters.flags.php>`_.
 		:returns:   $_POST if no parameters supplied, otherwise the POST value if found, or null if not
 		:rtype: mixed|null
 
@@ -369,10 +387,11 @@ The methods provided by the parent classes that are available are:
 
 			$request->getPostGet('field1');
 
-	.. php:method:: getGetPost([$index = null[, $filter = null]])
+	.. php:method:: getGetPost([$index = null[, $filter = null[, $flags = null]]])
 
 		:param  string  $index: The name of the variable/key to look for.
 		:param  int     $filter: The type of filter to apply. A list of filters can be found `here <http://php.net/manual/en/filter.filters.php>`_.
+		:param  int     $flags: Flags to apply. A list of flags can be found `here <http://php.net/manual/en/filter.filters.flags.php>`_.
 		:returns:   $_POST if no parameters supplied, otherwise the POST value if found, or null if not
 		:rtype: mixed|null
 
@@ -382,19 +401,20 @@ The methods provided by the parent classes that are available are:
 
 			$request->getGetPost('field1');
 
-	.. php:method:: getCookie([$index = null[, $filter = NULL]])
+	.. php:method:: getCookie([$index = null[, $filter = null[, $flags = null]]])
 
 		:param	mixed	$index: COOKIE name
 		:param  int     $filter: The type of filter to apply. A list of filters can be found `here <http://php.net/manual/en/filter.filters.php>`_.
+		:param  int     $flags: Flags to apply. A list of flags can be found `here <http://php.net/manual/en/filter.filters.flags.php>`_.
 		:returns:	$_COOKIE if no parameters supplied, otherwise the COOKIE value if found or null if not
 		:rtype:	mixed
 
 		This method is identical to ``getPost()`` and ``getGet()``, only it fetches cookie data::
 
 			$request->getCookie('some_cookie');
-			$request->getCookie('some_cookie, FILTER_SANITIZE_STRING); // with filter
+			$request->getCookie('some_cookie', FILTER_SANITIZE_STRING); // with filter
 
-		To return an array of multiple cookie values, pass all the required keys as an array.::
+		To return an array of multiple cookie values, pass all the required keys as an array::
 
 			$request->getCookie(array('some_cookie', 'some_cookie2'));
 
@@ -402,10 +422,11 @@ The methods provided by the parent classes that are available are:
 			function :php:func:`get_cookie()`, this method does NOT prepend
 			your configured ``$config['cookie_prefix']`` value.
 
-	.. php:method:: getServer($index[, $filter = null])
+	.. php:method:: getServer([$index = null[, $filter = null[, $flags = null]]])
 
 		:param	mixed	$index: Value name
 		:param  int     $filter: The type of filter to apply. A list of filters can be found `here <http://php.net/manual/en/filter.filters.php>`_.
+		:param  int     $flags: Flags to apply. A list of flags can be found `here <http://php.net/manual/en/filter.filters.flags.php>`_.
 		:returns:	$_SERVER item value if found, NULL if not
 		:rtype:	mixed
 
@@ -426,8 +447,6 @@ The methods provided by the parent classes that are available are:
 		:returns:  The User Agent string, as found in the SERVER data, or null if not found.
 		:rtype: mixed
 
-		This method returns the User Agent string from the SERVER data.::
+		This method returns the User Agent string from the SERVER data::
 
 			$request->getUserAgent();
-
-

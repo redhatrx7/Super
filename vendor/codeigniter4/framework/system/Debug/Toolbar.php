@@ -1,5 +1,40 @@
 <?php namespace CodeIgniter\Debug;
 
+/**
+ * CodeIgniter
+ *
+ * An open source application development framework for PHP
+ *
+ * This content is released under the MIT License (MIT)
+ *
+ * Copyright (c) 2014-2017 British Columbia Institute of Technology
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @package	CodeIgniter
+ * @author	CodeIgniter Dev Team
+ * @copyright	2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license	https://opensource.org/licenses/MIT	MIT License
+ * @link	https://codeigniter.com
+ * @since	Version 3.0.0
+ * @filesource
+ */
 use CodeIgniter\Config\BaseConfig;
 
 /**
@@ -13,6 +48,7 @@ use CodeIgniter\Config\BaseConfig;
  */
 class Toolbar
 {
+
 	/**
 	 * Collectors to be used and displayed.
 	 *
@@ -29,7 +65,7 @@ class Toolbar
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param BaseConfig $config
 	 */
 	public function __construct(BaseConfig $config)
@@ -50,13 +86,14 @@ class Toolbar
 
 	/**
 	 * Run
-	 * 
-	 * @param type $startTime
-	 * @param type $totalTime
-	 * @param type $startMemory
-	 * @param type $request
-	 * @param type $response
-	 * @return type
+	 *
+	 * @param float                               $startTime
+	 * @param float                               $totalTime
+	 * @param float                               $startMemory
+	 * @param \CodeIgniter\HTTP\RequestInterface  $request
+	 * @param \CodeIgniter\HTTP\ResponseInterface $response
+	 *
+	 * @return string
 	 */
 	public function run($startTime, $totalTime, $startMemory, $request, $response): string
 	{
@@ -65,14 +102,14 @@ class Toolbar
 		// Data items used within the view.
 		$collectors = $this->collectors;
 
-		$totalTime       = $totalTime * 1000;
-		$totalMemory     = number_format((memory_get_peak_usage() - $startMemory) / 1048576, 3);
+		$totalTime = $totalTime * 1000;
+		$totalMemory = number_format((memory_get_peak_usage() - $startMemory) / 1048576, 3);
 		$segmentDuration = $this->roundTo($totalTime / 7, 5);
-		$segmentCount    = (int)ceil($totalTime / $segmentDuration);
-		$varData         = $this->collectVarData();
+		$segmentCount = (int) ceil($totalTime / $segmentDuration);
+		$varData = $this->collectVarData();
 
 		ob_start();
-		include(__DIR__.'/Toolbar/View/toolbar.tpl.php');
+		include(__DIR__ . '/Toolbar/Views/toolbar.tpl.php');
 		$output = ob_get_contents();
 		ob_end_clean();
 
@@ -101,14 +138,14 @@ class Toolbar
 			$output .= "<tr>";
 			$output .= "<td>{$row['name']}</td>";
 			$output .= "<td>{$row['component']}</td>";
-			$output .= "<td style='text-align: right'>".number_format($row['duration'] * 1000, 2)." ms</td>";
+			$output .= "<td style='text-align: right'>" . number_format($row['duration'] * 1000, 2) . " ms</td>";
 			$output .= "<td colspan='{$segmentCount}' style='overflow: hidden'>";
 
 			$offset = ((($row['start'] - $this->startTime) * 1000) /
-					$displayTime)	* 100;
+					$displayTime) * 100;
 			$length = (($row['duration'] * 1000) / $displayTime) * 100;
 
-			$output .= "<span class='timer' style='left: {$offset}%; width: {$length}%;' title='".number_format($length, 2)."%'></span>";
+			$output .= "<span class='timer' style='left: {$offset}%; width: {$length}%;' title='" . number_format($length, 2) . "%'></span>";
 
 			$output .= "</td>";
 
@@ -132,7 +169,7 @@ class Toolbar
 		// Collect it
 		foreach ($this->collectors as $collector)
 		{
-			if (! $collector->hasTimelineData())
+			if ( ! $collector->hasTimelineData())
 			{
 				continue;
 			}
@@ -160,7 +197,7 @@ class Toolbar
 
 		foreach ($this->collectors as $collector)
 		{
-			if (! $collector->hasVarData())
+			if ( ! $collector->hasVarData())
 			{
 				continue;
 			}
@@ -176,8 +213,8 @@ class Toolbar
 	/**
 	 * Rounds a number to the nearest incremental value.
 	 *
-	 * @param     $number
-	 * @param int $increments
+	 * @param float $number
+	 * @param int   $increments
 	 *
 	 * @return float
 	 */
@@ -189,5 +226,4 @@ class Toolbar
 	}
 
 	//--------------------------------------------------------------------
-
 }

@@ -23,7 +23,7 @@ The following is a list of the core system files that are invoked every time Cod
 * CodeIgniter\\Controller
 * CodeIgniter\\Debug\\Exceptions
 * CodeIgniter\\Debug\\Timer
-* CodeIgniter\\Hooks\\Hooks
+* CodeIgniter\\Events\\Events
 * CodeIgniter\\HTTP\\CLIRequest (if launched from command line only)
 * CodeIgniter\\HTTP\\IncomingRequest (if launched over HTTP)
 * CodeIgniter\\HTTP\\Request
@@ -97,7 +97,7 @@ If you need to use a constructor in your class make sure you extend the parent c
 instead of the native ones (this is known as “method overriding”). This allows you to substantially alter the CodeIgniter core.
 
 If you are extending the Controller core class, then be sure to extend your new class in your application controller’s
-constructors.::
+constructors::
 
 	class Home extends App\BaseController {
 

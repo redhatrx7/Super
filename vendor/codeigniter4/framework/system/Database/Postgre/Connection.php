@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014 - 2016, British Columbia Institute of Technology
+ * Copyright (c) 2014-2017 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,22 +29,21 @@
  *
  * @package	CodeIgniter
  * @author	CodeIgniter Dev Team
- * @copyright	Copyright (c) 2014 - 2016, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	http://codeigniter.com
+ * @copyright	2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license	https://opensource.org/licenses/MIT	MIT License
+ * @link	https://codeigniter.com
  * @since	Version 3.0.0
  * @filesource
  */
-
 use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\Database\ConnectionInterface;
-use CodeIgniter\DatabaseException;
 
 /**
  * Connection for Postgre
  */
 class Connection extends BaseConnection implements ConnectionInterface
 {
+
 	/**
 	 * Database driver
 	 *
@@ -83,14 +82,20 @@ class Connection extends BaseConnection implements ConnectionInterface
 			$this->buildDSN();
 		}
 
-		$this->connID = $persistent === true
-			? pg_pconnect($this->DSN) : pg_connect($this->DSN);
+		// Strip pgsql if exists
+		if (mb_strpos($this->DSN, 'pgsql:') === 0)
+		{
+			$this->DSN = mb_substr($this->DSN, 6);
+		}
+
+		// Convert semicolons to spaces.
+		$this->DSN = str_replace(';', ' ', $this->DSN);
+
+		$this->connID = $persistent === true ? pg_pconnect($this->DSN) : pg_connect($this->DSN);
 
 		if ($this->connID !== false)
 		{
-			if ($persistent === true
-				&& pg_connection_status($this->connID) === PGSQL_CONNECTION_BAD
-				&& pg_ping($this->connID) === false
+			if ($persistent === true && pg_connection_status($this->connID) === PGSQL_CONNECTION_BAD && pg_ping($this->connID) === false
 			)
 			{
 				return false;
@@ -126,6 +131,16 @@ class Connection extends BaseConnection implements ConnectionInterface
 	//--------------------------------------------------------------------
 
 	/**
+	 * Close the database connection.
+	 */
+	protected function _close()
+	{
+		pg_close($this->connID);
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
 	 * Select a specific database table to use.
 	 *
 	 * @param string $databaseName
@@ -151,13 +166,12 @@ class Connection extends BaseConnection implements ConnectionInterface
 			return $this->dataCache['version'];
 		}
 
-		if ( ! $this->connID or ($pgVersion = pg_version($this->connID)) === false)
+		if ( ! $this->connID or ( $pgVersion = pg_version($this->connID)) === false)
 		{
-			return false;
+			$this->initialize();
 		}
 
-		return isset($pgVersion['server'])
-			? $this->dataCache['version'] = $pgVersion['server'] : false;
+		return isset($pgVersion['server']) ? $this->dataCache['version'] = $pgVersion['server'] : false;
 	}
 
 	//--------------------------------------------------------------------
@@ -165,9 +179,9 @@ class Connection extends BaseConnection implements ConnectionInterface
 	/**
 	 * Executes the query against the database.
 	 *
-	 * @param $sql
+	 * @param string $sql
 	 *
-	 * @return mixed
+	 * @return resource
 	 */
 	public function execute($sql)
 	{
@@ -198,7 +212,13 @@ class Connection extends BaseConnection implements ConnectionInterface
 	 */
 	public function escape($str)
 	{
-		if (is_string($str) OR (is_object($str) && method_exists($str, '__toString'))) {
+		if (! $this->connID)
+		{
+			$this->initialize();
+		}
+
+		if (is_string($str) OR ( is_object($str) && method_exists($str, '__toString')))
+		{
 			return pg_escape_literal($this->connID, $str);
 		}
 		elseif (is_bool($str))
@@ -219,6 +239,11 @@ class Connection extends BaseConnection implements ConnectionInterface
 	 */
 	protected function _escapeString(string $str): string
 	{
+		if (! $this->connID)
+		{
+			$this->initialize();
+		}
+
 		return pg_escape_string($this->connID, $str);
 	}
 
@@ -233,13 +258,13 @@ class Connection extends BaseConnection implements ConnectionInterface
 	 */
 	protected function _listTables($prefixLimit = false): string
 	{
-		$sql = 'SELECT "table_name" FROM "information_schema"."tables" WHERE "table_schema" = \''.$this->schema."'";
+		$sql = 'SELECT "table_name" FROM "information_schema"."tables" WHERE "table_schema" = \'' . $this->schema . "'";
 
 		if ($prefixLimit !== false && $this->DBPrefix !== '')
 		{
-			return $sql.' AND "table_name" LIKE \''
-				.$this->escapeLikeString($this->DBPrefix)."%' "
-				.sprintf($this->likeEscapeStr, $this->likeEscapeChar);
+			return $sql . ' AND "table_name" LIKE \''
+					. $this->escapeLikeString($this->DBPrefix) . "%' "
+					. sprintf($this->likeEscapeStr, $this->likeEscapeChar);
 		}
 
 		return $sql;
@@ -259,7 +284,7 @@ class Connection extends BaseConnection implements ConnectionInterface
 		return 'SELECT "column_name"
 			FROM "information_schema"."columns"
 			WHERE LOWER("table_name") = '
-			.$this->escape(strtolower($table));
+				. $this->escape($this->DBPrefix.strtolower($table));
 	}
 
 	//--------------------------------------------------------------------
@@ -270,12 +295,12 @@ class Connection extends BaseConnection implements ConnectionInterface
 	 * @param	string	$table
 	 * @return	array
 	 */
-	public function fieldData(string $table)
+	public function _fieldData(string $table)
 	{
 		$sql = 'SELECT "column_name", "data_type", "character_maximum_length", "numeric_precision", "column_default"
 			FROM "information_schema"."columns"
 			WHERE LOWER("table_name") = '
-			.$this->escape(strtolower($table));
+				. $this->escape(strtolower($table));
 
 		if (($query = $this->query($sql)) === false)
 		{
@@ -284,15 +309,13 @@ class Connection extends BaseConnection implements ConnectionInterface
 		$query = $query->getResultObject();
 
 		$retval = [];
-		for ($i = 0, $c = count($query); $i < $c; $i++)
+		for ($i = 0, $c = count($query); $i < $c; $i ++ )
 		{
-			$retval[$i]             = new \stdClass();
-			$retval[$i]->name       = $query[$i]->column_name;
-			$retval[$i]->type       = $query[$i]->data_type;
-			$retval[$i]->default    = $query[$i]->column_default;
-			$retval[$i]->max_length = $query[$i]->character_maximum_length > 0
-				? $query[$i]->character_maximum_length
-				: $query[$i]->numeric_precision;
+			$retval[$i] = new \stdClass();
+			$retval[$i]->name = $query[$i]->column_name;
+			$retval[$i]->type = $query[$i]->data_type;
+			$retval[$i]->default = $query[$i]->column_default;
+			$retval[$i]->max_length = $query[$i]->character_maximum_length > 0 ? $query[$i]->character_maximum_length : $query[$i]->numeric_precision;
 		}
 
 		return $retval;
@@ -300,6 +323,84 @@ class Connection extends BaseConnection implements ConnectionInterface
 
 	//--------------------------------------------------------------------
 
+	/**
+	 * Returns an object with index data
+	 *
+	 * @param	string	$table
+	 * @return	array
+	 */
+	public function _indexData(string $table)
+	{
+		$sql = 'SELECT "indexname", "indexdef"
+			FROM "pg_indexes"
+			WHERE LOWER("tablename") = ' . $this->escape(strtolower($table)) . '
+			AND "schemaname" = ' . $this->escape('public');
+
+		if (($query = $this->query($sql)) === false)
+		{
+			return false;
+		}
+		$query = $query->getResultObject();
+                
+		$retval = [];
+		foreach ($query as $row)
+		{
+			$obj = new \stdClass();
+			$obj->name = $row->indexname;
+			$_fields = explode(',', preg_replace('/^.*\((.+?)\)$/', '$1', trim($row->indexdef)));
+			$obj->fields = array_map(function($v) {
+				return trim($v);
+			}, $_fields);
+
+			$retval[] = $obj;
+	}
+
+		return $retval;
+	}
+
+	//--------------------------------------------------------------------
+        
+/**
+	 * Returns an object with Foreign key data
+	 *
+	 * @param	string	$table
+	 * @return	array
+	 */
+	public function _foreignKeyData(string $table)
+	{
+		$sql = 'SELECT
+                            tc.constraint_name, tc.table_name, kcu.column_name, 
+                            ccu.table_name AS foreign_table_name,
+                            ccu.column_name AS foreign_column_name
+                        FROM information_schema.table_constraints AS tc 
+                        JOIN information_schema.key_column_usage AS kcu
+                            ON tc.constraint_name = kcu.constraint_name
+                        JOIN information_schema.constraint_column_usage AS ccu
+                            ON ccu.constraint_name = tc.constraint_name
+                        WHERE constraint_type = '.$this->escape('FOREIGN KEY').' AND tc.table_name = '.$this->escape($table);
+                
+		if (($query = $this->query($sql)) === false)
+		{
+			return false;
+		}
+		$query = $query->getResultObject();
+                
+		$retval = [];
+		foreach ($query as $row)
+		{
+			$obj = new \stdClass();
+			$obj->constraint_name = $row->constraint_name;
+                        $obj->table_name = $row->table_name;
+                        $obj->foreign_table_name = $row->foreign_table_name;
+
+			$retval[] = $obj;
+		}
+
+		return $retval;
+	}
+
+	//--------------------------------------------------------------------
+        
 	/**
 	 * Returns the last error code and message.
 	 *
@@ -312,8 +413,8 @@ class Connection extends BaseConnection implements ConnectionInterface
 	public function error()
 	{
 		return [
-			'code'    => '',
-			'message' => pg_last_error($this->connID)
+			'code'		 => '',
+			'message'	 => pg_last_error($this->connID)
 		];
 	}
 
@@ -330,7 +431,7 @@ class Connection extends BaseConnection implements ConnectionInterface
 		// 'server' key is only available since PostgreSQL 7.4
 		$v = isset($v['server']) ? $v['server'] : 0;
 
-		$table  = func_num_args() > 0 ? func_get_arg(0) : null;
+		$table = func_num_args() > 0 ? func_get_arg(0) : null;
 		$column = func_num_args() > 1 ? func_get_arg(1) : null;
 
 		if ($table === null && $v >= '8.1')
@@ -343,7 +444,7 @@ class Connection extends BaseConnection implements ConnectionInterface
 			{
 				$sql = "SELECT pg_get_serial_sequence('{$table}', '{$column}') AS seq";
 				$query = $this->query($sql);
-				$query = $query->row();
+				$query = $query->getRow();
 				$seq = $query->seq;
 			}
 			else
@@ -430,4 +531,40 @@ class Connection extends BaseConnection implements ConnectionInterface
 	}
 
 	//--------------------------------------------------------------------
+
+	/**
+	 * Begin Transaction
+	 *
+	 * @return	bool
+	 */
+	protected function _transBegin(): bool
+	{
+		return (bool) pg_query($this->connID, 'BEGIN');
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Commit Transaction
+	 *
+	 * @return	bool
+	 */
+	protected function _transCommit(): bool
+	{
+		return (bool) pg_query($this->connID, 'COMMIT');
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Rollback Transaction
+	 *
+	 * @return	bool
+	 */
+	protected function _transRollback(): bool
+	{
+		return (bool) pg_query($this->connID, 'ROLLBACK');
+	}
+
+	// --------------------------------------------------------------------
 }

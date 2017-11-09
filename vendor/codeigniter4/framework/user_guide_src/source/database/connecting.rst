@@ -52,7 +52,7 @@ If you need to connect to more than one database simultaneously you can
 do so as follows::
 
 	$db1 = \Config\Database::connect('group_one');
-	$db = \Config\Database::connect('group_two');
+	$db  = \Config\Database::connect('group_two');
 
 Note: Change the words "group_one" and "group_two" to the specific
 group names you are connecting to.
@@ -61,7 +61,7 @@ group names you are connecting to.
 	only need to use a different database on the same connection. You
 	can switch to a different database when you need to, like this:
 
-	| $db->dbSelect($database2_name);
+	| $db->setDatabase($database2_name);
 
 Reconnecting / Keeping the Connection Alive
 ===========================================
@@ -71,6 +71,9 @@ some heavy PHP lifting (processing an image, for instance), you should
 consider pinging the server by using the reconnect() method before
 sending further queries, which can gracefully keep the connection alive
 or re-establish it.
+
+.. important:: If you are using MySQLi database driver, the reconnect() method
+	does not ping the server but it closes the connection then connects again.
 
 ::
 

@@ -7,6 +7,9 @@ use CodeIgniter\HTTP\URI;
 
 //--------------------------------------------------------------------
 
+/**
+ * @backupGlobals enabled
+ */
 class SecurityTest extends \CIUnitTestCase {
 
 	public function setUp()
@@ -54,25 +57,6 @@ class SecurityTest extends \CIUnitTestCase {
 
 	//--------------------------------------------------------------------
 
-	public function testCSRFVerifyAllowsWhitelistedURLs()
-	{
-		$white_uri = 'http://example.com';
-
-		$security = new MockSecurity(new MockAppConfig());
-		$request  = new IncomingRequest(new MockAppConfig(), new URI($white_uri));
-
-		// Post will get us to the check.
-		// Invalid matching fields should throw error or return false.
-		$_SERVER['REQUEST_METHOD'] = 'POST';
-		$_COOKIE = [
-			'csrf_cookie_name' => '8b9218a55906f9dcc1dc263dce7f005a'
-		];
-
-		$this->assertInstanceOf('CodeIgniter\Security\Security', $security->CSRFVerify($request));
-	}
-
-	//--------------------------------------------------------------------
-
 	public function testCSRFVerifyThrowsExceptionOnNoMatch()
 	{
 		$security = new MockSecurity(new MockAppConfig());
@@ -84,7 +68,7 @@ class SecurityTest extends \CIUnitTestCase {
 			'csrf_cookie_name' => '8b9218a55906f9dcc1dc263dce7f005b'
 		];
 
-		$this->setExpectedException('LogicException');
+		$this->expectException('LogicException');
 		$security->CSRFVerify($request);
 	}
 

@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014 - 2016, British Columbia Institute of Technology
+ * Copyright (c) 2014-2017 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,20 +29,20 @@
  *
  * @package      CodeIgniter
  * @author       CodeIgniter Dev Team
- * @copyright    Copyright (c) 2014 - 2016, British Columbia Institute of Technology (http://bcit.ca/)
- * @license      http://opensource.org/licenses/MIT	MIT License
- * @link         http://codeigniter.com
+ * @copyright    2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license      https://opensource.org/licenses/MIT	MIT License
+ * @link         https://codeigniter.com
  * @since        Version 4.0.0
  * @filesource
  */
-
-use CodeIgniter\Services;
+use CodeIgniter\Database\Query;
 
 /**
  * Collector for the Database tab of the Debug Toolbar.
  */
 class Database extends BaseCollector
 {
+
 	/**
 	 * Whether this collector has timeline data.
 	 *
@@ -78,6 +78,13 @@ class Database extends BaseCollector
 	 */
 	protected $connections;
 
+	/**
+	 * The query instances that have been collected
+	 * through the DBQuery Event.
+	 *
+	 * @var array
+	 */
+	protected static $queries = [];
 
 	//--------------------------------------------------------------------
 
@@ -87,6 +94,21 @@ class Database extends BaseCollector
 	public function __construct()
 	{
 		$this->connections = \Config\Database::getConnections();
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * The static method used during Events to collect
+	 * data.
+	 *
+	 * @param \CodeIgniter\Database\Query $query
+	 *
+	 * @internal param $ array \CodeIgniter\Database\Query
+	 */
+	public static function collect(Query $query)
+	{
+		static::$queries[] = $query;
 	}
 
 	//--------------------------------------------------------------------
@@ -104,23 +126,21 @@ class Database extends BaseCollector
 		{
 			// Connection Time
 			$data[] = [
-				'name' => 'Connecting to Database: "'.$alias.'"',
-				'component' => 'Database',
-				'start' => $connection->getConnectStart(),
-				'duration' => $connection->getConnectDuration()
+				'name'		 => 'Connecting to Database: "' . $alias . '"',
+				'component'	 => 'Database',
+				'start'		 => $connection->getConnectStart(),
+				'duration'	 => $connection->getConnectDuration()
 			];
+		}
 
-			$queries = $connection->getQueries();
-
-			foreach ($queries as $query)
-			{
-				$data[] = [
-					'name' => 'Query',
-				    'component' => 'Database',
-				    'start' => $query->getStartTime(true),
-				    'duration' => $query->getDuration()
-				];
-			}
+		foreach (static::$queries as $query)
+		{
+			$data[] = [
+				'name'		 => 'Query',
+				'component'	 => 'Database',
+				'start'		 => $query->getStartTime(true),
+				'duration'	 => $query->getDuration()
+			];
 		}
 
 		return $data;
@@ -135,57 +155,49 @@ class Database extends BaseCollector
 	 */
 	public function display(): string
 	{
-		$output = '';
-
 		// Key words we want bolded
 		$highlight = ['SELECT', 'DISTINCT', 'FROM', 'WHERE', 'AND', 'LEFT&nbsp;JOIN', 'ORDER&nbsp;BY', 'GROUP&nbsp;BY',
-		              'LIMIT', 'INSERT', 'INTO', 'VALUES', 'UPDATE', 'OR&nbsp;', 'HAVING', 'OFFSET', 'NOT&nbsp;IN',
-		              'IN', 'LIKE', 'NOT&nbsp;LIKE', 'COUNT', 'MAX', 'MIN', 'ON', 'AS', 'AVG', 'SUM', '(', ')'
+			'LIMIT', 'INSERT', 'INTO', 'VALUES', 'UPDATE', 'OR&nbsp;', 'HAVING', 'OFFSET', 'NOT&nbsp;IN',
+			'IN', 'LIKE', 'NOT&nbsp;LIKE', 'COUNT', 'MAX', 'MIN', 'ON', 'AS', 'AVG', 'SUM', '(', ')'
 		];
 
-		$connectionCount = count($this->connections);
+		$parser = \Config\Services::parser(BASEPATH . 'Debug/Toolbar/Views/', null,false);
 
-		foreach ($this->connections as $alias => $connection)
+		$data = [
+			'queries' => []
+		];
+
+		foreach (static::$queries as $query)
 		{
-			if ($connectionCount > 1)
+			$sql = $query->getQuery();
+
+			foreach ($highlight as $term)
 			{
-				$output .= '<h3>'.$alias.': <span>'.$connection->getPlatform().' '.$connection->getVersion().
-				           '</span></h3>';
+				$sql = str_replace($term, "<strong>{$term}</strong>", $sql);
 			}
 
-			$output .= '<table>';
-
-			$output .= '<thead><tr>';
-			$output .= '<th style="width: 6rem;">Time</th>';
-			$output .= '<th>Query String</th>';
-			$output .= '</tr></thead>';
-
-			$output .= '<body>';
-
-			$queries = $connection->getQueries();
-
-			foreach ($queries as $query)
-			{
-				$output .= '<tr>';
-				$output .='<td class="narrow">'.($query->getDuration(5) * 1000).' ms</td>';
-
-				$sql = $query->getQuery();
-
-				foreach ($highlight as $term)
-				{
-					$sql = str_replace($term, "<strong>{$term}</strong>", $sql);
-				}
-
-				$output .= '<td>'.$sql.'</td>';
-				$output .= '</tr>';
-			}
-
-			$output .= '</body>';
-
-			$output .= '</table>';
+			$data['queries'][] = [
+				'duration'	 => ($query->getDuration(5) * 1000) .' ms',
+				'sql'		 => $sql
+			];
 		}
 
+		$output = $parser->setData($data)
+				->render('_database.tpl');
+
 		return $output;
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * Gets the "badge" value for the button.
+	 *
+	 * @return int
+	 */
+	public function getBadgeValue()
+	{
+		return count(static::$queries);
 	}
 
 	//--------------------------------------------------------------------
@@ -197,17 +209,9 @@ class Database extends BaseCollector
 	 */
 	public function getTitleDetails(): string
 	{
-		$queryCount = 0;
-
-		foreach ($this->connections as $connection)
-		{
-			$queryCount += $connection->getQueryCount();
-		}
-
-		return '('.$queryCount.' Queries across '.count($this->connections).' Connection'.
-		       (count($this->connections) > 1 ? 's' : '').')';
+		return '(' . count(static::$queries) . ' Queries across ' . count($this->connections) . ' Connection' .
+				(count($this->connections) > 1 ? 's' : '') . ')';
 	}
 
 	//--------------------------------------------------------------------
-
 }

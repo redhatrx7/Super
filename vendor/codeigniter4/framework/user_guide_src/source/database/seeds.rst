@@ -20,7 +20,7 @@ stored within the **application/Database/Seeds** directory. The name of the file
 		{
 			$data = [
 				'username' => 'darth',
-				'email' => 'darth@theempire.com'
+				'email'    => 'darth@theempire.com'
 			];
 
 			// Simple Queries
@@ -47,6 +47,15 @@ but organize the tasks into separate seeder files::
 			$this->call('CountrySeeder');
 			$this->call('JobSeeder');
 		}
+	}
+
+You can also use a fully-qualified class name in the **call()** method, allowing you to keep your seeders 
+anywhere the autoloader can find them. This is great for more modular code bases::
+
+	public function run()
+	{
+		$this->call('UserSeeder');
+		$this->call('My\Database\Seeds\CountrySeeder');
 	}
 
 Using Seeders

@@ -18,7 +18,7 @@ For example, let’s say you want your URLs to have this prototype::
     example.com/product/2/
     example.com/product/3/
     example.com/product/4/
-    
+
 Normally the second segment of the URL is reserved for the method name, but in the example
 above it instead has a product ID. To overcome this, CodeIgniter allows you to remap the URI handler.
 
@@ -45,8 +45,8 @@ Placeholders
 
 A typical route might look something like this::
 
-    $routes->add('product/:num', 'App\Catalog::productLookup');
-   
+    $routes->add('product/(:num)', 'App\Catalog::productLookup');
+
 In a route, the first parameter contains the URI to be matched, while the second parameter
 contains the destination it should be re-routed to. In the above example, if the literal word
 "product" is found in the first segment of the URL, and a number is found in the second segment,
@@ -56,13 +56,17 @@ Placeholders are simply strings that represent a Regular Expression pattern. Dur
 process, these placeholders are replaced with the value of the Regular Expression. They are primarily
 used for readability.
 
-The following placeholders are available for you to use in your routes: 
+The following placeholders are available for you to use in your routes:
 
-* **(:any)** will match all characters from that point to the end of the URI. This may include multiple URI segments. 
+* **(:any)** will match all characters from that point to the end of the URI. This may include multiple URI segments.
 * **(:segment)** will match any character except for a forward slash (/) restricting the result to a single segment.
 * **(:num)** will match any integer.
 * **(:alpha)** will match any string of alphabetic characters
-* **(alphanum)** will match any string of alphabetic characters or integers, or any combination of the two.
+* **(:alphanum)** will match any string of alphabetic characters or integers, or any combination of the two.
+* **(:hash)** is the same as **:segment**, but can be used to easily see which routes use hashed ids (see the :doc:`Model </database/model>` docs).
+
+.. note:: **{locale}** cannot be used as a placeholder or other part of the route, as it is reserved for use
+    in :doc:`localization </libraries/localization>`.
 
 Examples
 ========
@@ -80,12 +84,12 @@ A URL containing the segments "blog/joe" will be remapped to the “\Blogs” cl
 The ID will be set to “34”::
 
 	$routes->add('product/(:any)', 'Catalog::productLookup');
-	
+
 A URL with “product” as the first segment, and anything in the second will be remapped to the “\Catalog” class
 and the “productLookup” method::
 
 	$routes->add('product/(:num)', 'Catalog::productLookupByID/$1';
-	
+
 A URL with “product” as the first segment, and a number in the second will be remapped to the “\Catalog” class
 and the “productLookupByID” method passing in the match as a variable to the method.
 
@@ -114,7 +118,7 @@ Regular Expressions
 If you prefer you can use regular expressions to define your routing rules. Any valid regular expression
 is allowed, as are back-references.
 
-.. important::Note: If you use back-references you must use the dollar syntax rather than the double backslash syntax.
+.. important:: Note: If you use back-references you must use the dollar syntax rather than the double backslash syntax.
     A typical RegEx route might look something like this::
 
 	$routes->add('products/([a-z]+)/(\d+)', '$1::id_$2');
@@ -129,7 +133,7 @@ For example, if a user accesses a password protected area of your web applicatio
 redirect them back to the same page after they log in, you may find this example useful::
 
 	$routes->add('login/(.+)', 'Auth::login/$1');
-	
+
 For those of you who don’t know regular expressions and want to learn more about them,
 `regular-expressions.info <http://www.regular-expressions.info/>`_ might be a good starting point.
 
@@ -143,12 +147,11 @@ You can use an anonymous function, or Closure, as the destination that a route m
 executed when the user visits that URI. This is handy for quickly executing small tasks, or even just showing
 a simple view::
 
-	$routes->add('feed', function()
-		{
-			$rss = new RSSFeeder();
-			return $rss->feed('general');
-		{
-	);
+    $routes->add('feed', function()
+    {
+        $rss = new RSSFeeder();
+        return $rss->feed('general');
+    });
 
 Mapping multiple routes
 =======================
@@ -160,7 +163,7 @@ define an array of routes and then pass it as the first parameter to the `map()`
 	$routes = [];
 	$routes['product/(:num)']      = 'Catalog::productLookupById';
 	$routes['product/(:alphanum)'] = 'Catalog::productLookupByName';
-	
+
 	$collection->map($routes);
 
 
@@ -171,7 +174,7 @@ Any site that lives long enough is bound to have pages that move. You can specif
 to other routes with the ``addRedirect()`` method. The first parameter is the URI pattern for the old route. The
 second parameter is either the new URI to redirect to, or the name of a named route. The third parameter is
 the HTTP status code that should be sent along with the redirect. The default value is ``302`` which is a temporary
-redirect and is recommended in most cases.::
+redirect and is recommended in most cases::
 
     $routes->add('users/profile', 'Users::profile', ['as' => 'profile']);
 
@@ -193,9 +196,9 @@ extensive set of routes that all share the opening string, like when building an
 	$routes->group('admin', function($routes)
 	{
 		$routes->add('users', 'Admin\Users::index');
-		$routes->add('blog',  'Admin\Blog::index');
+		$routes->add('blog', 'Admin\Blog::index');
 	});
-	
+
 This would prefix the 'users' and 'blog" URIs with "admin", handling URLs like ``/admin/users`` and ``/admin/blog``.
 It is possible to nest groups within groups for finer organization if you need it::
 
@@ -232,16 +235,16 @@ to, and have the router lookup the current route to it. This allows route defini
 to update your application code. This is typically used within views to create links.
 
 For example, if you have a route to a photo gallery that you want to link to, you can use the ``route_to()`` helper
-function to get the current route that should be used. The first parameter is the Controller and method, written
-just as it would be defined the destination of a route. Any parameters that should be passed to the route are
-passed in next::
+function to get the current route that should be used. The first parameter is the fully qualified Controller and method,
+separated by a double colon (::), much like you would use when writing the initial route itself. Any parameters that
+should be passed to the route are passed in next::
 
 	// The route is defined as:
-	$routes->add('users/(:id)/gallery(:any)', 'Galleries::showUserGallery/$1/$2');
+	$routes->add('users/(:id)/gallery(:any)', 'App\Controllers\Galleries::showUserGallery/$1/$2');
 
 	// Generate the relative URL to link to user ID 15, gallery 12
 	// Generates: /users/15/gallery/12
-	<a href="<?= route_to('Galleries::showUserGallery', 15, 12) ?>">View Gallery</a>
+	<a href="<?= route_to('App\Controllers\Galleries::showUserGallery', 15, 12) ?>">View Gallery</a>
 
 Using Named Routes
 ==================
@@ -254,9 +257,9 @@ with the name of the route::
     // The route is defined as:
     $routes->add('users/(:id)/gallery(:any)', 'Galleries::showUserGallery/$1/$2', ['as' => 'user_gallery');
 
-	// Generate the relative URL to link to user ID 15, gallery 12
-	// Generates: /users/15/gallery/12
-	<a href="<?= route_to('user_gallery', 15, 12) ?>">View Gallery</a>
+    // Generate the relative URL to link to user ID 15, gallery 12
+    // Generates: /users/15/gallery/12
+    <a href="<?= route_to('user_gallery', 15, 12) ?>">View Gallery</a>
 
 This has the added benefit of making the views more readable, too.
 
@@ -282,7 +285,7 @@ Command-Line only Routes
 You can create routes that work only from the command-line, and are inaccessible from the web browser, with the
 ``cli()`` method. This is great for building cronjobs or CLI-only tools. Any route created by any of the HTTP-verb-based
 route methods will also be inaccessible from the CLI, but routes created by the ``any()`` method will still be
-available from the command line.::
+available from the command line::
 
 	$routes->cli('migrate', 'App\Database::migrate');
 
@@ -294,18 +297,26 @@ creates the five most common routes needed for full CRUD of a resource: create a
 list all of that resource, show a single resource, and delete a single resource. The first parameter is the resource
 name::
 
-	$routes->resource('photos');
+    $routes->resource('photos');
 
-	// Equivalent to the following:
-	$routes->get('photos',               'Photos::listAll');
-	$routes->get('photos/(:segment)',    'Photos::show/$1');
-	$routes->post('photos',              'Photos::create');
-	$routes->put('photos/(:segment)',    'Photos::update/$1');
-	$routes->delete('photos/(:segment)', 'Photos::delete/$1');
+    // Equivalent to the following:
+    $routes->get('photos',                 'Photos::index');
+    $routes->get('photos/new',             'Photos::new');
+    $routes->get('photos/(:segment)/edit', 'Photos::edit/$1');
+    $routes->get('photos/(:segment)',      'Photos::show/$1');
+    $routes->post('photos',                'Photos::create');
+    $routes->patch('photos/(:segment)',    'Photos::update/$1');
+    $routes->put('photos/(:segment)',      'Photos::update/$1');
+    $routes->delete('photos/(:segment)',   'Photos::delete/$1');
+
+.. important:: The routes are matched in the order they are specified, so if you have a resource photos above a get 'photos/poll'
+the show action's route for the resource line will be matched before the get line. To fix this, move the get line above the resource
+line so that it is matched first.
+
 
 The second parameter accepts an array of options that can be used to modify the routes that are generated. While these
 routes are geared toward API-usage, where more methods are allowed, you can pass in the 'websafe' option to have it
-generate update and delete methods that work with HTML forms.
+generate update and delete methods that work with HTML forms::
 
     $routes->resource('photos', ['websafe' => 1]);
 
@@ -322,7 +333,7 @@ the controller that should be used::
 	$routes->resources('photos', ['controller' =>'App\Gallery']);
 
 	// Would create routes like:
-	$routes->get('photos', 'App\Gallery::listAll');
+	$routes->get('photos', 'App\Gallery::index');
 
 Change the Placeholder Used
 ---------------------------
@@ -339,11 +350,11 @@ Limit the Routes Made
 ---------------------
 
 You can restrict the routes generated with the ``only`` option. This should be an array of method names that should
-be created. Only routes that match one of these methods will be created. The rest will be ignored.::
+be created. Only routes that match one of these methods will be created. The rest will be ignored::
 
-    $routes->resources('photos', ['only' => ['listAll', 'show']]);
+	$routes->resources('photos', ['only' => ['index', 'show']]);
 
-Valid methods are: listAll, show, create, update, and delete.
+Valid methods are: index, show, create, update, new, edit and delete.
 
 Global Options
 ==============
@@ -359,7 +370,7 @@ can modify the generated routes, or further restrict them. The ``$options`` arra
 	$routes->options('from', 'to', $options);
 	$routes->delete('from', 'to', $options);
 	$routes->patch('from', 'to', $options);
-	$routes->match(['get, 'put'], 'from', 'to', $options);
+	$routes->match(['get', 'put'], 'from', 'to', $options);
 	$routes->resources('photos', $options);
 	$routes->map($array, $options);
 	$routes->group('name', $options, function());
@@ -415,12 +426,12 @@ You can offset the matched parameters in your route by any numeric value with th
 value being the number of segments to offset.
 
 This can be beneficial when developing API's with the first URI segment being the version number. It can also
-be used when the first parameter is a language string.::
+be used when the first parameter is a language string::
 
 	$routes->get('users/(:num)', 'users/show/$1', ['offset' => 1]);
 
 	// Creates:
-	$routes['users/(:num)'] = 'users/show/$2);
+	$routes['users/(:num)'] = 'users/show/$2';
 
 
 Routes Configuration Options
@@ -439,10 +450,10 @@ controller::
     $routes->setDefaultNamespace('');
 
     // Controller is \Users
-	$routes->add('users', 'Users::index');
+    $routes->add('users', 'Users::index');
 
-	// Controller is \Admin\Users
-	$routes->add('users', 'Admin\Users::index');
+    // Controller is \Admin\Users
+    $routes->add('users', 'Admin\Users::index');
 
 
 If your controllers are not explicitly namespaced, there is no need to change this. If you namespace your controllers,
@@ -511,6 +522,17 @@ a valid class/method pair, just like you would show in any route, or a Closure::
     $routes->set404Override('App\Errors::show404');
 
     // Will display a custom view
-    $routes->set404Override(function(){
+    $routes->set404Override(function()
+    {
         echo view('my_errors/not_found.html');
     });
+
+Discovering Module Routes
+-------------------------
+
+If you are using :doc:`modular code </general/modules>`, then this setting will specify whether or not additional
+Routes files should be scanned for within each of the PSR4 namespaces defined in **/application/Config/Autoload.php**.
+
+::
+
+    $routes->discoverLocal(false);

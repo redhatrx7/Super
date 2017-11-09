@@ -21,7 +21,7 @@ Why run via the command-line?
 There are many reasons for running CodeIgniter from the command-line,
 but they are not always obvious.
 
--  Run your cron-jobs without needing to use *wget* or *curl*
+-  Run your cron-jobs without needing to use *wget* or *curl*.
 -  Make your cron-jobs inaccessible from being loaded in the URL by
    checking the return value of :php:func:`is_cli()`.
 -  Make interactive "tasks" that can do things like set permissions,
@@ -87,7 +87,7 @@ CLI-Only Routing
 In your **Routes.php** file you can create routes that are only accessible from
 the CLI as easily as you would create any other route. Instead of using the ``get()``,
 ``post()``, or similar method, you would use the ``cli()`` method. Everything else
-works exactly like a normal route definition.::
+works exactly like a normal route definition::
 
     $routes->cli('tools/message/(:segment)', 'Tools::message/$1');
 

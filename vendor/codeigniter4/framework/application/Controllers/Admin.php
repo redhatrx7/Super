@@ -1,6 +1,8 @@
-<?php
+<?php namespace App\Controllers;
 
-class Admin extends App\Core\Controller
+use \App\Core\Controller;
+
+class Admin extends Controller
 {
 	public function index()
 	{

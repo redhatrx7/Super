@@ -2,6 +2,9 @@
 
 use Config\App;
 
+/**
+ * @backupGlobals enabled
+ */
 class IncomingRequestTest extends \CIUnitTestCase
 {
 	/**
@@ -59,6 +62,21 @@ class IncomingRequestTest extends \CIUnitTestCase
 
 	//--------------------------------------------------------------------
 
+    /**
+     * @group single
+     */
+    public function testCanGetOldInput()
+    {
+        $_SESSION['_ci_old_input'] = [
+            'get' => ['one' => 'two'],
+            'post' => ['name' => 'foo']
+        ];
+
+        $this->assertEquals('foo', $this->request->getOldInput('name'));
+        $this->assertEquals('two', $this->request->getOldInput('one'));
+    }
+
+
 	public function testCanGrabServerVars()
 	{
 		$_SERVER['TEST'] = 5;
@@ -103,6 +121,91 @@ class IncomingRequestTest extends \CIUnitTestCase
 
 	//--------------------------------------------------------------------
 
+	public function testFetchGlobalWithArrayTop()
+	{
+		$_POST = [
+			'clients' => [
+				'address' => [
+					'zipcode' => 90210
+				]
+			]
+		];
+
+		$this->assertEquals(['address' => ['zipcode' => 90210]], $this->request->getPost('clients'));
+	}
+
+	public function testFetchGlobalWithArrayChildNumeric()
+	{
+		$_POST = [
+			'clients' => [
+				[
+					'address' => [
+						'zipcode' => 90210
+					],
+				],
+				[
+					'address' => [
+						'zipcode' => 60610
+					],
+				],
+			]
+		];
+
+		$this->assertEquals(['zipcode' => 60610], $this->request->getPost('clients[1][address]'));
+	}
+
+	public function testFetchGlobalWithArrayChildElement()
+	{
+		$_POST = [
+			'clients' => [
+				'address' => [
+					'zipcode' => 90210
+				],
+			]
+		];
+
+		$this->assertEquals(['zipcode' => 90210], $this->request->getPost('clients[address]'));
+	}
+
+	public function testFetchGlobalWithArrayLastElement()
+	{
+		$_POST = [
+			'clients' => [
+				'address' => [
+					'zipcode' => 90210
+				]
+			]
+		];
+
+		$this->assertEquals(90210, $this->request->getPost('clients[address][zipcode]'));
+	}
+
+	/**
+     * @see https://github.com/bcit-ci/CodeIgniter4/issues/353
+     */
+    public function testGetPostReturnsArrayValues()
+    {
+        $_POST = [
+            'ANNOUNCEMENTS' => [
+                1 => [
+                    'DETAIL' => 'asdf'
+                ],
+                2 => [
+                    'DETAIL' => 'sdfg'
+                ]
+            ],
+            'submit' => 'SAVE'
+        ];
+
+        $result = $this->request->getPost();
+
+        $this->assertEquals($_POST, $result);
+        $this->assertTrue(is_array($result['ANNOUNCEMENTS']));
+        $this->assertEquals(2, count($result['ANNOUNCEMENTS']));
+    }
+
+    //--------------------------------------------------------------------
+
 	public function testFetchGlobalFiltersValue()
 	{
 		$_POST = [
@@ -113,6 +216,20 @@ class IncomingRequestTest extends \CIUnitTestCase
 		];
 
 		$this->assertEquals('bar%3Cscript%3E', $this->request->getPost('foo', FILTER_SANITIZE_ENCODED));
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testFetchGlobalFilterWithFlagValue()
+	{
+		$_POST = [
+			'foo' => '`bar<script>',
+			'bar' => 'baz',
+			'xxx' => 'yyy',
+			'yyy' => 'zzz'
+		];
+
+		$this->assertEquals('bar%3Cscript%3E', $this->request->getPost('foo', FILTER_SANITIZE_ENCODED, FILTER_FLAG_STRIP_BACKTICK));
 	}
 
 	//--------------------------------------------------------------------
@@ -152,6 +269,26 @@ class IncomingRequestTest extends \CIUnitTestCase
 
 	//--------------------------------------------------------------------
 
+	public function testFetchGlobalFilterWithFlagAllValues()
+	{
+		$_POST = [
+			'foo' => '`bar<script>',
+			'bar' => '`baz<script>',
+			'xxx' => '`yyy<script>',
+			'yyy' => '`zzz<script>'
+		];
+		$expected = [
+			'foo' => 'bar%3Cscript%3E',
+			'bar' => 'baz%3Cscript%3E',
+			'xxx' => 'yyy%3Cscript%3E',
+			'yyy' => 'zzz%3Cscript%3E'
+		];
+
+		$this->assertEquals($expected, $this->request->getPost(null, FILTER_SANITIZE_ENCODED, FILTER_FLAG_STRIP_BACKTICK));
+	}
+
+	//--------------------------------------------------------------------
+
 	public function testFetchGlobalReturnsSelectedKeys()
 	{
 		$_POST = [
@@ -184,6 +321,91 @@ class IncomingRequestTest extends \CIUnitTestCase
 		];
 
 		$this->assertEquals($expected, $this->request->getPost(['foo', 'bar'], FILTER_SANITIZE_ENCODED));
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testFetchGlobalFilterWithFlagSelectedValues()
+	{
+		$_POST = [
+			'foo' => '`bar<script>',
+			'bar' => '`baz<script>',
+			'xxx' => '`yyy<script>',
+			'yyy' => '`zzz<script>'
+		];
+		$expected = [
+			'foo' => 'bar%3Cscript%3E',
+			'bar' => 'baz%3Cscript%3E',
+		];
+
+		$this->assertEquals($expected, $this->request->getPost(['foo', 'bar'], FILTER_SANITIZE_ENCODED, FILTER_FLAG_STRIP_BACKTICK));
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testStoresDefaultLocale()
+	{
+		$config = new App();
+
+		$this->assertEquals($config->defaultLocale, $this->request->getDefaultLocale());
+		$this->assertEquals($config->defaultLocale, $this->request->getLocale());
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testSetLocaleSaves()
+	{
+		$this->request->setLocale('en');
+
+		$this->assertEquals('en', $this->request->getLocale());
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testNegotiatesLocale()
+	{
+		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'es; q=1.0, en; q=0.5';
+
+		$config = new App();
+		$config->negotiateLocale = true;
+		$config->supportedLocales = ['en', 'es'];
+
+		$request = new IncomingRequest($config, new URI());
+
+		$this->assertEquals($config->defaultLocale, $request->getDefaultLocale());
+		$this->assertEquals('es', $request->getLocale());
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testCanGrabGetRawJSON()
+	{
+		$json = '{"code":1, "message":"ok"}';
+
+		$expected = [
+			'code' => 1,
+			'message' => 'ok'
+		];
+
+		$request = new IncomingRequest(new App(), new URI(), $json);
+		
+		$this->assertEquals($expected, $request->getJSON(true));
+	}
+
+	//--------------------------------------------------------------------
+
+	public function testCanGrabGetRawInput()
+	{
+		$rawstring = 'username=admin001&role=administrator&usepass=0';
+
+		$expected = [
+			'username' => 'admin001',
+			'role' => 'administrator',
+			'usepass' => 0
+		];
+		$request = new IncomingRequest(new App(), new URI(), $rawstring);
+
+		$this->assertEquals($expected, $request->getRawInput());
 	}
 
 	//--------------------------------------------------------------------

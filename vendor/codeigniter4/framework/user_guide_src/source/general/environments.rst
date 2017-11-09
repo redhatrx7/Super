@@ -13,16 +13,27 @@ The ENVIRONMENT Constant
 ========================
 
 By default, CodeIgniter comes with the environment constant set to use
-the value provided in ``$_SERVER['CI_ENV']``, otherwise defaulting to
-'production'. At the top of index.php, you will see::
+the value provided in ``$_SERVER['CI_ENVIRONMENT']``, otherwise defaulting to
+'production'. This can be set in several ways depending on your server setup.
 
-	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
+.env
+----
+
+The simplest method to set the variable is in your :doc:`.env file </general/configuration>`::
+
+    CI_ENVIRONMENT = development
+
+Apache
+------
 
 This server variable can be set in your ``.htaccess`` file, or Apache
 config using `SetEnv <https://httpd.apache.org/docs/2.2/mod/mod_env.html#setenv>`_.
 ::
 
-    SetEnv CI_ENV development
+    SetEnv CI_ENVIRONMENT development
+
+nginx
+-----
 
 Under nginx, you must pass the environment variable through the ``fastcgi_params``
 in order for it to show up under the `$_SERVER` variable. This allows it to work on the
@@ -36,7 +47,7 @@ like::
 	    root        /var/www;
 
 	    location    ~* "\.php$" {
-	        fastcgi_param CI_ENV "production";
+	        fastcgi_param CI_ENVIRONMENT "production";
 	        include conf/fastcgi-php.conf;
 	    }
 	}
@@ -55,7 +66,7 @@ Boot Files
 CodeIgniter requires that a PHP script matching the environment's name is located
 under **APPPATH/Config/Boot**. These files can contain any customizations that
 you would like to make for your environment, whether it's updating the error display
-settings, loading addtional developer tools, or anything else. These are
+settings, loading additional developer tools, or anything else. These are
 automatically loaded by the system. The following files are already created in
 a fresh install:
 

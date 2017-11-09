@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014 - 2016, British Columbia Institute of Technology
+ * Copyright (c) 2014-2017 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,9 +29,9 @@
  *
  * @package      CodeIgniter
  * @author       CodeIgniter Dev Team
- * @copyright    Copyright (c) 2014 - 2016, British Columbia Institute of Technology (http://bcit.ca/)
- * @license      http://opensource.org/licenses/MIT	MIT License
- * @link         http://codeigniter.com
+ * @copyright    2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
+ * @license      https://opensource.org/licenses/MIT	MIT License
+ * @link         https://codeigniter.com
  * @since        Version 4.0.0
  * @filesource
  */
@@ -41,6 +41,7 @@
  */
 class Files extends BaseCollector
 {
+
 	/**
 	 * Whether this collector has data that can
 	 * be displayed in the Timeline.
@@ -74,7 +75,7 @@ class Files extends BaseCollector
 	 */
 	public function getTitleDetails(): string
 	{
-		return '( '.(int)count(get_included_files()).' )';
+		return '( ' . (int) count(get_included_files()) . ' )';
 	}
 
 	//--------------------------------------------------------------------
@@ -85,38 +86,56 @@ class Files extends BaseCollector
 	 *
 	 * @return string
 	 */
-	 public function display(): string
-	 {
-		$output = "<table><tbody>";
+	public function display(): string
+	{
+		$parser = \Config\Services::parser(BASEPATH . 'Debug/Toolbar/Views/', null, false);
 
-		$files = get_included_files();
+		$rawFiles = get_included_files();
+		$coreFiles = [];
+		$userFiles = [];
 
-		$count = 0;
-
-		foreach ($files as $file)
+		foreach ($rawFiles as $file)
 		{
-			++$count;
-
 			$path = $this->cleanPath($file);
 
 			if (strpos($path, 'BASEPATH') !== false)
 			{
-				$output .= "<tr class='muted'>";
+				$coreFiles[] = [
+					'name'	 => basename($file),
+					'path'	 => $path
+				];
 			}
 			else
 			{
-				$output .= "<tr>";
+				$userFiles[] = [
+					'name'	 => basename($file),
+					'path'	 => $path
+				];
 			}
-
-			$output .= "<td style='width: 20em;'>". htmlspecialchars(str_replace('.php', '', basename($file)), ENT_SUBSTITUTE, 'UTF-8')."</td>";
-			$output .= "<td>".htmlspecialchars($path, ENT_SUBSTITUTE, 'UTF-8')."</td>";
-			$output .= "</tr>";
 		}
 
-		$output .= "</tbody></table>";
+		sort($userFiles);
+		sort($coreFiles);
 
-		return $output;
-	 }
+		return $parser->setData([
+							'coreFiles'	 => $coreFiles,
+							'userFiles'	 => $userFiles,
+						])
+						->render('_files.tpl');
+	}
 
 	//--------------------------------------------------------------------
+
+	/**
+	 * Displays the number of included files as a badge in the tab button.
+	 *
+	 * @return int
+	 */
+	public function getBadgeValue()
+	{
+		return count(get_included_files());
+	}
+
+	//--------------------------------------------------------------------
+
 }

@@ -22,6 +22,9 @@ your database properly as described :doc:`here <../database/configuration>`.
 ::
 
 	<?php
+
+	namespace App\Models;
+	
 	class NewsModel extends \CodeIgniter\Model
 	{
 		protected $table = 'news';
@@ -54,7 +57,7 @@ to get all of our posts from our database. To do this, the database
 abstraction layer that is included with CodeIgniter —
 :doc:`Query Builder <../database/query_builder>` — is used. This makes it
 possible to write your 'queries' once and make them work on :doc:`all
-supported database systems <../general/requirements>`. The Model class
+supported database systems <../intro/requirements>`. The Model class
 also allows you to easily work with the Query Builder and provides
 some additional tools to make working with data simpler. Add the
 following code to your model.
@@ -69,8 +72,8 @@ following code to your model.
 		}
 
 		return $this->asArray()
-		            ->where(['slug' => $slug])
-		            ->first();
+		             ->where(['slug' => $slug])
+		             ->first();
 	}
 
 With this code you can perform two different queries. You can get all
@@ -97,20 +100,23 @@ a new ``News`` controller is defined. Create the new controller at
 ::
 
 	<?php
+
+	use App\Models\NewsModel;
+
 	class News extends \CodeIgniter\Controller
 	{
 		public function index()
 		{
 			$model = new NewsModel();
 
-			$data = ['news'] = $model->getNews();
+			$data['news'] = $model->getNews();
 		}
 
 		public function view($slug = null)
 		{
-		    $model = new NewsModel();
+			$model = new NewsModel();
 
-			$data = ['news'] = $model->getNews($slug);
+			$data['news'] = $model->getNews($slug);
 		}
 	}
 
@@ -135,7 +141,7 @@ the views. Modify the ``index()`` method to look like this::
 
 		$data = [
 			'news'  => $model->getNews(),
-		    'title' => 'News archive',
+			'title' => 'News archive',
 		];
 
 		echo view('Templates/Header', $data);
@@ -176,8 +182,8 @@ and add the next piece of code.
 
 Here, each news item is looped and displayed to the user. You can see we
 wrote our template in PHP mixed with HTML. If you prefer to use a template
-language, you can use CodeIgniter's :doc:`Template
-Parser <../libraries/parser>` class or a third party parser.
+language, you can use CodeIgniter's :doc:`View
+Parser <../general/view_parser>` or a third party parser.
 
 The news overview page is now done, but a page to display individual
 news items is still absent. The model created earlier is made in such
@@ -195,13 +201,13 @@ add some code to the controller and create a new view. Go back to the
 
 		if (empty($data['news']))
 		{
-			throw new \CodeIgniter\PageNotFoundException('Cannot page the page: '. $slug);
+			throw new \CodeIgniter\PageNotFoundException('Cannot find the page: '. $slug);
 		}
 
-		$data['title'] = $data['news'][0]['title'];
+		$data['title'] = $data['news']['title'];
 
 		echo view('Templates/Header', $data);
-		echo view('News/Index', $data);
+		echo view('News/View', $data);
 		echo view('Templates/Footer');
 	}
 
@@ -214,7 +220,7 @@ The only things left to do is create the corresponding view at
 
 	<?php
 	echo '<h2>'.$news['title'].'</h2>';
-	echo $$news['text'];
+	echo $news['text'];
 
 Routing
 -------
@@ -222,7 +228,7 @@ Routing
 Because of the wildcard routing rule created earlier, you need an extra
 route to view the controller that you just made. Modify your routing file
 (*application/config/routes.php*) so it looks as follows.
-This makes sure the requests reaches the ``News`` controller instead of
+This makes sure the requests reach the ``News`` controller instead of
 going directly to the ``Pages`` controller. The first line routes URI's
 with a slug to the ``view()`` method in the ``News`` controller.
 

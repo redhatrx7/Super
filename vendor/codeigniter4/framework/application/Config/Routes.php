@@ -58,12 +58,13 @@ if (file_exists(BASEPATH.'Config/Routes.php'))
  * Controllers when no specific route has been defined. If false,
  * only routes that have been defined here will be available.
  */
-$routes->setDefaultNamespace('');
+$routes->setDefaultNamespace('App\Controllers');
 $routes->setDefaultController('Home');
 $routes->setDefaultMethod('index');
 $routes->setTranslateURIDashes(false);
 $routes->set404Override();
 $routes->setAutoRoute(true);
+$routes->discoverLocal(false);
 
 /**
  * --------------------------------------------------------------------

@@ -10,7 +10,7 @@ CodeIgniter's CLI library makes creating interactive command-line scripts simple
 * Showing progress bars during long tasks
 * Wrapping long text lines to fit the window.
 
-.. contents::
+.. contents:: Page Contents
 
 Initializing the Class
 ======================
@@ -35,13 +35,7 @@ Sometimes you need to ask the user for more information. They might not have pro
 arguments, or the script may have encountered an existing file and needs confirmation before overwriting. This is
 handled with the ``prompt()`` method.
 
-The most basic use case is to simply wait for the user to press a key::
-
-	// Wait for the user to press any key...
-	CLI::prompt();
-
-You can get a little more specific and provide a question for them to answer by passing the question in
-as the first parameter::
+You can provide a question by passing it in as the first parameter::
 
 	$color = CLI::prompt('What is your favorite color?');
 
@@ -50,9 +44,13 @@ second parameter::
 
 	$color = CLI::prompt('What is your favorite color?', 'blue');
 
-Finally, you can restrict the acceptable answers by passing in an array of allowed answers as the second parameter::
+You can restrict the acceptable answers by passing in an array of allowed answers as the second parameter::
 
-	$overwrite = CLI::prompt('File exists. Overwrite?', array('y','n'));
+	$overwrite = CLI::prompt('File exists. Overwrite?', ['y','n']);
+
+Finally, you can pass validation rules to the answer input as the third parameter::
+
+	$email = CLI::prompt('What is your email?', null, 'required|valid_email');
 
 Providing Feedback
 ==================
@@ -119,7 +117,7 @@ exactly as you would the ``write()`` method::
 
 This command will take a string, start printing it on the current line, and wrap it to a set length on new lines.
 This might be useful when displaying a list of options with descriptions that you want to wrap in the current
-window and not go off screen.::
+window and not go off screen::
 
 	CLI::color("task1\t", 'yellow');
 	CLI::wrap("Some long description goes here that might be longer than the current window.");
@@ -143,7 +141,7 @@ every line after the first line, so that you will have a crisp column edge on th
 	// to determine the width of the left column
 	$maxlen = max(array_map('strlen', $titles));
 
-	for ($i=0; $ <= count($titles); $i++)
+	for ($i=0; $i <= count($titles); $i++)
 	{
 		CLI::write(
 			// Display the title on the left of the row
@@ -151,7 +149,7 @@ every line after the first line, so that you will have a crisp column edge on th
 			// Wrap the descriptions in a right-hand column
 			// with its left side 3 characters wider than
 			// the longest item on the left.
-			CLI::wrap($descriptions[$i], 40, $maxlen+3
+			CLI::wrap($descriptions[$i], 40, $maxlen+3)
 		);
 	}
 
@@ -172,7 +170,7 @@ The ``newLine()`` method displays a blank line to the user. It does not take any
 
 You can clear the current terminal window with the ``clearScreen()`` method. In most versions of Windows, this will
 simply insert 40 blank lines since Windows doesn't support this feature. Windows 10 bash integration should change
-this.::
+this::
 
 	CLI::clearScreen();
 

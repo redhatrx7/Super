@@ -17,22 +17,22 @@ Class Reference
 
 .. php:class:: CodeIgniter\\HTTP\\IncomingRequest
 
-	.. php:method:: ipAddress()
+	.. php:method:: getIPAddress()
 
 		:returns: The user's IP Address, if it can be detected, or null. If the IP address
-					is not a valid IP addresss, then will return 0.0.0.0
+					is not a valid IP address, then will return 0.0.0.0
 		:rtype: string
 
 		Returns the IP address for the current user. If the IP address is not valid, the method
 		will return '0.0.0.0'::
 
-			echo $request->ipAddress();
+			echo $request->getIPAddress();
 
 		.. important:: This method takes into account the ``App->proxy_ips`` setting and will
 			return the reported HTTP_X_FORWARDED_FOR, HTTP_CLIENT_IP, HTTP_X_CLIENT_IP, or
 			HTTP_X_CLUSTER_CLIENT_IP address for the allowed IP address.
 
-	.. php:method:: validIP($ip[, $which = ''])
+	.. php:method:: isValidIP($ip[, $which = ''])
 
 		:param	string	$ip: IP address
 		:param	string	$which: IP protocol ('ipv4' or 'ipv6')
@@ -42,11 +42,11 @@ Class Reference
 		Takes an IP address as input and returns true or false (boolean) depending
 		on whether it is valid or not.
 
-		.. note:: The $request->ipAddress() method above automatically validates the IP address.
+		.. note:: The $request->getIPAddress() method above automatically validates the IP address.
 
                 ::
 
-			if ( ! $request->validIP($ip))
+			if ( ! $request->isValidIP($ip))
 			{
                             echo 'Not Valid';
 			}
@@ -73,10 +73,11 @@ Class Reference
 			echo $request->method(FALSE); // Outputs: post
 			echo $request->method(); // Outputs: post
 
-	.. php:method:: getServer($index[, $filter = NULL])
+	.. php:method:: getServer([$index = null[, $filter = null[, $flags = null]]])
 
 		:param	mixed	$index: Value name
 		:param  int     $filter: The type of filter to apply. A list of filters can be found `here <http://php.net/manual/en/filter.filters.php>`_.
+		:param  int     $flags: Flags to apply. A list of flags can be found `here <http://php.net/manual/en/filter.filters.flags.php>`_.
 		:returns:	$_SERVER item value if found, NULL if not
 		:rtype:	mixed
 
@@ -90,4 +91,3 @@ Class Reference
 		::
 
 			$require->getServer(array('SERVER_PROTOCOL', 'REQUEST_URI'));
-

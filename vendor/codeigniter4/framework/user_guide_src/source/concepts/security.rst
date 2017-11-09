@@ -48,7 +48,7 @@ OWASP recommendations
 ---------------------
 
 - Presentation: validate authentication & role; send CSRF token with forms
-- Design: only use inbuilt session management
+- Design: only use built-in session management
 - Controller: validate user, role, CSRF token
 - Model: validate role
 - Tip: consider the use of a request governor
@@ -70,15 +70,15 @@ that can be malicious when viewed by other users to the web site.
 OWASP recommendations
 ---------------------
 
-- Presentation: validate authentication & role; set input constraints
+- Presentation: output encode all user data as per output context; set input constraints
 - Controller: positive input validation
 - Tips: only process trustworthy data; do not store data HTML encoded in DB
 
 CodeIgniter provisions
 ----------------------
 
+- esc function
 - Form validation library
-- Easy to add third party authentication
 
 ***********************************
 A4 Insecure Direct Object Reference
@@ -112,7 +112,7 @@ that might compromise the security of the whole architecture.
 OWASP recommendations
 ---------------------
 
-- Presentation: harden web and application servers; use HTTP strict transport secutiry
+- Presentation: harden web and application servers; use HTTP strict transport security
 - Controller: harden web and application servers; protect your XML stack
 - Model: harden database servers
 

@@ -21,7 +21,7 @@ class ResponseTest extends \CIUnitTestCase
 	{
 		$response = new Response(new App());
 
-		$this->setExpectedException('InvalidArgumentException');
+		$this->expectException('InvalidArgumentException');
 		$response->setStatusCode(54322);
 	}
 
@@ -54,7 +54,8 @@ class ResponseTest extends \CIUnitTestCase
 	{
 		$response = new Response(new App());
 
-		$this->setExpectedException('InvalidArgumentException', 'Unknown HTTP status code provided with no message');
+		$this->expectException('InvalidArgumentException');
+		$this->expectExceptionMessage('Unknown HTTP status code provided with no message');
 		$response->setStatusCode(115);
 	}
 
@@ -64,7 +65,8 @@ class ResponseTest extends \CIUnitTestCase
 	{
 		$response = new Response(new App());
 
-		$this->setExpectedException('InvalidArgumentException', '95 is not a valid HTTP return status code');
+		$this->expectException('InvalidArgumentException');
+		$this->expectExceptionMessage('95 is not a valid HTTP return status code');
 		$response->setStatusCode(95);
 	}
 
@@ -74,18 +76,9 @@ class ResponseTest extends \CIUnitTestCase
 	{
 		$response = new Response(new App());
 
-		$this->setExpectedException('InvalidArgumentException', '695 is not a valid HTTP return status code');
+		$this->expectException('InvalidArgumentException');
+		$this->expectExceptionMessage('695 is not a valid HTTP return status code');
 		$response->setStatusCode(695);
-	}
-
-	//--------------------------------------------------------------------
-
-	public function testExceptionThrownWhenNoStatusCode()
-	{
-		$response = new Response(new App());
-
-		$this->setExpectedException('BadMethodCallException', 'HTTP Response is missing a status code');
-		$response->getStatusCode();
 	}
 
 	//--------------------------------------------------------------------
@@ -112,11 +105,11 @@ class ResponseTest extends \CIUnitTestCase
 
 	//--------------------------------------------------------------------
 
-	public function testGetReasonReturnsEmptyStringWithNoStatus()
+	public function testGetReasonDefaultsToOK()
 	{
 		$response = new Response(new App());
 
-		$this->assertEquals('', $response->getReason());
+		$this->assertEquals('OK', $response->getReason());
 	}
 
 	//--------------------------------------------------------------------
@@ -201,12 +194,7 @@ class ResponseTest extends \CIUnitTestCase
 	{
 		$response = new Response(new App());
 
-		try
-		{
-			$response->redirect('example.com');
-			$this->fail('RedirectException should be raised.');
-		}
-		catch (RedirectException $e) {}
+		$response->redirect('example.com');
 
 		$this->assertTrue($response->hasHeader('location'));
 		$this->assertEquals('example.com', $response->getHeaderLine('Location'));
@@ -219,12 +207,7 @@ class ResponseTest extends \CIUnitTestCase
 	{
 		$response = new Response(new App());
 
-		try
-		{
-			$response->redirect('example.com', 'auto', 307);
-			$this->fail('RedirectException should be raised.');
-		}
-		catch (RedirectException $e) {}
+		$response->redirect('example.com', 'auto', 307);
 
 		$this->assertTrue($response->hasHeader('location'));
 		$this->assertEquals('example.com', $response->getHeaderLine('Location'));

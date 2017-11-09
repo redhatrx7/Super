@@ -50,12 +50,12 @@ not automatically display them, though. You can retrieve all of your timers by c
 This returns an array of benchmark information, including start, end, and duration::
 
 	$timers = $benchmark->getTimers();
-	
+
 	// Timers =
 	array(
-		'render view' => array(
-			'start' => 1234567890,
-			'end' => 1345678920,
+		'render view'  => array(
+			'start'    => 1234567890,
+			'end'      => 1345678920,
 			'duration' => 15.4315      // number of seconds
 		)
 	)
@@ -65,7 +65,7 @@ the only parameter. The default value is 4 numbers behind the decimal point::
 
 	$timers = $benchmark->getTimers(6);
 
-The timers are automatically displayed in the :doc:`Debub Toolbar </general/profiling>`.
+The timers are automatically displayed in the :doc:`Debub Toolbar </general/debugging>`.
 
 Displaying Execution Time
 =========================
@@ -93,15 +93,15 @@ Tasks are defined within Closures. Any output the task creates will be discarded
 added to the Iterator class through the `add()` method. The first parameter is a name you want to refer to
 this test by. The second parameter is the Closure, itself::
 
-	$iterator = new CodeIgniter\Benchmark\Iterator();
-	
+	$iterator = new \CodeIgniter\Benchmark\Iterator();
+
 	// Add a new task
-	$iterator->add('single_concat', function() 
+	$iterator->add('single_concat', function()
 		{
 			$str = 'Some basic'.'little'.'string concatenation test.';
 		}
 	);
-	
+
 	// Add another task
 	$iterator->add('double', function($a='little')
 		{
@@ -125,4 +125,3 @@ displayed, you can pass in `false` as the second parameter::
 
 	// Don't display the results.
 	$iterator->run(1000, false);
-

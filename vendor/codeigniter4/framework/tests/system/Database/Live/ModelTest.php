@@ -1,14 +1,22 @@
 <?php namespace CodeIgniter\Database\Live;
 
+use CodeIgniter\I18n\Time;
 use CodeIgniter\Model;
+use CodeIgniter\Test\ReflectionHelper;
+use Tests\Support\Models\EntityModel;
+use Tests\Support\Models\EventModel;
 use Tests\Support\Models\JobModel;
+use Tests\Support\Models\SimpleEntity;
 use Tests\Support\Models\UserModel;
+use Tests\Support\Models\ValidModel;
 
 /**
  * @group DatabaseLive
  */
 class ModelTest extends \CIDatabaseTestCase
 {
+	use ReflectionHelper;
+
 	protected $refresh = true;
 
 	protected $seed = 'CITestSeeder';
@@ -250,9 +258,6 @@ class ModelTest extends \CIDatabaseTestCase
 
 	//--------------------------------------------------------------------
 
-	/**
-	 * @group single
-	 */
 	public function testSaveNewRecordObject()
 	{
 	    $model = new JobModel();
@@ -260,7 +265,7 @@ class ModelTest extends \CIDatabaseTestCase
 		$data = new \stdClass();
 		$data->name = 'Magician';
 		$data->description = 'Makes peoples things dissappear.';
-		
+
 		$model->protect(false)->save($data);
 
 		$this->seeInDatabase('job', ['name' => 'Magician']);
@@ -327,10 +332,11 @@ class ModelTest extends \CIDatabaseTestCase
 		$data->id = 1;
 		$data->name = 'Engineer';
 		$data->description = 'A fancier term for Developer.';
+		$data->random_thing = 'Something wicked'; // If not protected, this would kill the script.
 
-		$this->setExpectedException('CodeIgniter\DatabaseException');
+		$result = $model->protect(true)->save($data);
 
-		$model->protect(true)->save($data);
+        $this->assertTrue($result);
 	}
 
 	//--------------------------------------------------------------------
@@ -443,5 +449,130 @@ class ModelTest extends \CIDatabaseTestCase
 
 	//--------------------------------------------------------------------
 
+    public function testValidationBasics()
+    {
+        $model = new ValidModel($this->db);
 
+        $data = [
+            'description' => 'some great marketing stuff'
+        ];
+
+        $this->assertFalse($model->insert($data));
+
+        $errors = $model->errors();
+
+        $this->assertEquals('You forgot to name the baby.', $errors['name']);
+    }
+
+    //--------------------------------------------------------------------
+
+    public function testSkipValidation()
+    {
+        $model = new ValidModel($this->db);
+
+        $data = [
+            'name' => '2',
+            'description' => 'some great marketing stuff'
+        ];
+
+        $this->assertTrue(is_numeric($model->skipValidation(true)->insert($data)));
+    }
+
+    //--------------------------------------------------------------------
+
+    public function testCanCreateAndSaveEntityClasses()
+    {
+        $model = new EntityModel($this->db);
+
+        $entity = $model->where('name', 'Developer')->first();
+
+        $this->assertTrue($entity instanceof SimpleEntity);
+        $this->assertEquals('Developer', $entity->name);
+        $this->assertEquals('Awesome job, but sometimes makes you bored', $entity->description);
+
+        $entity->name = 'Senior Developer';
+        $entity->created_at = '2017-07-15';
+
+        $date = $this->getPrivateProperty($entity, 'created_at');
+        $this->assertTrue($date instanceof Time);
+
+        $this->assertTrue($model->save($entity));
+
+        $this->seeInDatabase('job', ['name' => 'Senior Developer', 'created_at' => '2017-07-15 00:00:00']);
+    }
+
+	/**
+	 * @see https://github.com/bcit-ci/CodeIgniter4/issues/580
+	 */
+	public function testPasswordsStoreCorrectly()
+    {
+		$model = new UserModel();
+
+		$pass = password_hash('secret123', PASSWORD_BCRYPT);
+
+		$data = [
+			'name'  => 	$pass,
+			'email' => 'foo@example.com',
+			'country' => 'US',
+			'deleted' => 0
+		];
+
+		$model->insert($data);
+
+		$this->seeInDatabase('user', $data);
+    }
+
+	public function testInsertEvent()
+	{
+		$model = new EventModel();
+
+		$data = [
+			'name'  => 	'Foo',
+			'email' => 'foo@example.com',
+			'country' => 'US',
+			'deleted' => 0
+		];
+
+		$model->insert($data);
+
+		$this->assertTrue($model->hasToken('beforeInsert'));
+		$this->assertTrue($model->hasToken('afterInsert'));
+    }
+
+	public function testUpdateEvent()
+	{
+		$model = new EventModel();
+
+		$data = [
+			'name'  => 	'Foo',
+			'email' => 'foo@example.com',
+			'country' => 'US',
+			'deleted' => 0
+		];
+
+		$id = $model->insert($data);
+		$model->update($id, $data);
+
+		$this->assertTrue($model->hasToken('beforeUpdate'));
+		$this->assertTrue($model->hasToken('afterUpdate'));
+	}
+
+	public function testFindEvent()
+	{
+		$model = new EventModel();
+
+		$model->find(1);
+
+		$this->assertTrue($model->hasToken('afterFind'));
+	}
+
+	public function testDeleteEvent()
+	{
+		$model = new EventModel();
+
+		$model->delete(1);
+
+		$this->assertTrue($model->hasToken('afterDelete'));
+	}
 }
+

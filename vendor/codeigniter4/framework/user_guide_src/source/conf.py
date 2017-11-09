@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'CodeIgniter4'
-copyright = u'2014 - 2016, British Columbia Institute of Technology'
+copyright = u'2014-2017 British Columbia Institute of Technology'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -101,7 +101,7 @@ html_theme = 'sphinx_rtd_theme'
 #
 # Specifying a few options; just a starting point & we can play with it.
 html_theme_options = {
-
+    'display_version': False
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
@@ -229,7 +229,7 @@ man_pages = [
 epub_title = u'CodeIgniter4'
 epub_author = u'British Columbia Institute of Technology'
 epub_publisher = u'British Columbia Institute of Technology'
-epub_copyright = u'2014 - 2016, British Columbia Institute of Technology'
+epub_copyright = u'2014-2017 British Columbia Institute of Technology'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.

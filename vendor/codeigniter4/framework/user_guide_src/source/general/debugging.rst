@@ -19,7 +19,7 @@ Enabling Kint
 =============
 
 By default, Kint is enabled in **development** and **testing** environments only. This can be altered by modifying
-the ``$useKing`` value in the environment configuration section of the main **index.php** file::
+the ``$useKint`` value in the environment configuration section of the main **index.php** file::
 
     $useKint = true;
 
@@ -60,10 +60,13 @@ to help you debug and optimize.
 Enabling the Toolbar
 ====================
 
-The toolbar is enabled by default in any environment _except_ production. You can turn change the environments
-that the toolbar is active on by editing **application/Config/App.php**::
+The toolbar is enabled by default in any environment *except* production. It will be shown whenever the
+constant CI_DEBUG is defined and it's value is positive. This is defined in the boot files (i.e.
+application/Config/Boot/development.php) and can be modified there to determine what environments it shows
+itself in.
 
-	public $toolbarEnabled = (ENVIRONMENT != 'production' && CI_DEBUG);
+The toolbar itself is displayed as an :doc:`After Filter </general/filters>`. You can stop it from ever
+running by removing it from the ``$globals`` property of **application/Config/Filters.php**.
 
 Choosing What to Show
 ---------------------
@@ -118,13 +121,13 @@ the Collector to work
 
 	class MyCollector extends BaseCollector
 	{
-		protected $hasTimeline = false;
+		protected $hasTimeline   = false;
 
 		protected $hasTabContent = false;
 
-		protected $hasVarData = false;
+		protected $hasVarData    = false;
 
-		protected $title = '';
+		protected $title         = '';
 	}
 
 **$hasTimeline** should be set to ``true`` for any Collector that wants to display information in the toolbar's
@@ -186,15 +189,15 @@ To add data to the Vars tab you must:
 2. Implement ``getVarData()`` method.
 
 The ``getVarData()`` method should return an array containing arrays of key/value pairs to display. The name of the
-outer array's key is the name of the section on the Vars tab.::
+outer array's key is the name of the section on the Vars tab::
 
 	$data = [
 		'section 1' => [
-		    'foo' => 'bar,
+		    'foo' => 'bar',
 		    'bar' => 'baz'
 		],
 		'section 2' => [
-		    'foo' => 'bar,
+		    'foo' => 'bar',
 		    'bar' => 'baz'
 		]
 	 ];
