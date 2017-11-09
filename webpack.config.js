@@ -8,7 +8,7 @@ module.exports =
 	entry:
 	{
 		'home': ['./src/home/home.js'],
-		'test': ['./src/test/test.js']
+		'admin': ['./src/admin/admin.js']
 	},
 	output:
 	{

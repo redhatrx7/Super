@@ -1,6 +1,6 @@
 <?php namespace App\Core;
 
-class Controller extends \CodeIgniter\Controller 
+class Controller extends \CodeIgniter\Controller
 {
 	protected $js;
 	protected $css;
@@ -17,11 +17,11 @@ class Controller extends \CodeIgniter\Controller
 
 	private function _get_default_bundles()
 	{
-		$class_name = strtolower(get_class($this));
+		$class = strtolower(get_class($this));
 		$env = (ENVIRONMENT === 'production' ? 'prod' :
 			(ENVIRONMENT === 'testing' ? 'test' : 'dev'));
-		$js_file = "assets/js/$class_name.$env.js";
-		$css_file = "assets/css/$class_name.$env.css";
+		$js_file = "assets/js/$class.$env.js";
+		$css_file = "assets/css/$class.$env.css";
 
 		if (file_exists($js_file))
 		{
@@ -29,7 +29,7 @@ class Controller extends \CodeIgniter\Controller
 		}
 		else
 		{
-			log_message('warning', "$class_name has no js bundle for ".ENVIRONMENT);
+			log_message('warning', "$class has no js bundle for ".ENVIRONMENT);
 		}
 
 		if (file_exists($css_file))
@@ -38,11 +38,11 @@ class Controller extends \CodeIgniter\Controller
 		}
 		else
 		{
-			log_message('warning', "$class_name has no css bundle for ".ENVIRONMENT);
+			log_message('warning', "$class has no css bundle for ".ENVIRONMENT);
 		}
 	}
 
-	public function view(string $view, array $parameters = array())
+	protected function view(string $view, array $parameters = array())
 	{
 		$class = get_class($this);
 		echo view($this->header, ['css' => $this->css, 'title' => $class]);

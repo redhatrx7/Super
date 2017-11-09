@@ -4,9 +4,6 @@ class Home extends App\Core\Controller
 {
 	public function index()
 	{
-		$this->view('welcome_message');
+		$this->view('home');
 	}
-
-	//--------------------------------------------------------------------
-
 }

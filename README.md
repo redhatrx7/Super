@@ -11,4 +11,4 @@ Codeigniter 4.0-dev
 php 7.1.9
 
 * Set production/development: Change .htacess to be development/production and compile the run the package.json webpack run prod
-
+* host the vendor\codeigniter4\framework\public directory by apache

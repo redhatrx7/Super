@@ -11,7 +11,7 @@ module.exports = merge(common,
 		filename: './js/[name].dev.js',
 	},
 	plugins: [
-      	new ExtractTextPlugin({ // define where to save the file
+	new ExtractTextPlugin({ // define where to save the file
 			filename: './css/[name].dev.css',
 			allChunks: true
 		})
