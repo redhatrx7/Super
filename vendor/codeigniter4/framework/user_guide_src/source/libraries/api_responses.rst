@@ -22,7 +22,7 @@ The following example shows a common usage pattern within your controllers.
 
     class Users extends \CodeIgniter\Controller
     {
-        use CodeIgniter\API\ResponseTrait;
+        use \CodeIgniter\API\ResponseTrait;
 
         public function createUser()
         {
@@ -85,7 +85,7 @@ type of response to return. If no matches are found between what the client requ
 format in this array is what will be returned.
 
 Next, you need to define the class that is used to format the array of data. This must be a fully qualified class
-name, and the class must implement **CodeIgniter\API\FormatterInterface**. Formatters come out of the box that
+name, and the class must implement **CodeIgniter\\API\\FormatterInterface**. Formatters come out of the box that
 support both JSON and XML::
 
     public $formatters = [
@@ -94,7 +94,7 @@ support both JSON and XML::
     ];
 
 So, if your request asks for JSON formatted data in an **Accept** header, the data array you pass any of the
-``respond*`` or ``fail*`` methods will be formatted by the **CodeIgniter\API\JSONFormatter** class. The resulting
+``respond*`` or ``fail*`` methods will be formatted by the **CodeIgniter\\API\\JSONFormatter** class. The resulting
 JSON data will be sent back to the client.
 
 ===============
@@ -153,7 +153,7 @@ Class Reference
 	        ]
 	    ];
 
-.. php:method:: respondCreated($data[, string $message = ''])
+.. php:method:: respondCreated($data = null[, string $message = ''])
 
     :param mixed  $data: The data to return to the client. Either string or array.
     :param string $message: A custom "reason" message to return.
@@ -164,11 +164,11 @@ Class Reference
 	    $user = $userModel->insert($data);
 	    return $this->respondCreated($user);
 
-.. php:method:: respondDeleted($data[, string $message = ''])
+.. php:method:: respondDeleted($data = null[, string $message = ''])
 
     :param mixed  $data: The data to return to the client. Either string or array.
-        :param string $message: A custom "reason" message to return.
-        :returns: The value of the Response object's send() method.
+    :param string $message: A custom "reason" message to return.
+    :returns: The value of the Response object's send() method.
 
     Sets the appropriate status code to use when a new resource was deleted as the result of this API call, typically 200.
 
@@ -209,9 +209,9 @@ Class Reference
 .. php:method:: failNotFound(string $description = 'Not Found'[, string $code=null[, string $message = '']])
 
     :param mixed  $description: The error message to show the user.
-        :param string $code: A custom, API-specific, error code.
-        :param string $message: A custom "reason" message to return.
-        :returns: The value of the Response object's send() method.
+    :param string $code: A custom, API-specific, error code.
+    :param string $message: A custom "reason" message to return.
+    :returns: The value of the Response object's send() method.
 
     Sets the appropriate status code to use when the requested resource cannot be found. Status code is 404.
 

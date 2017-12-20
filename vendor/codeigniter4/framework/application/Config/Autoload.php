@@ -51,9 +51,11 @@ class Autoload extends \CodeIgniter\Config\AutoloadConfig
 		 */
 		$psr4 = [
 			'Config'                     => APPPATH.'Config',
+			APP_NAMESPACE                => APPPATH,			    // For custom namespace
+			'App'                        => APPPATH,			    // To ensure filters, etc still found,
+			'Tests\Support'              => TESTPATH.'_support',    // So custom migrations can run during testing
 			APP_NAMESPACE.'\Core' 		 => APPPATH.'Core',
-			APP_NAMESPACE.'\Controllers' => APPPATH.'Controllers',
-			APP_NAMESPACE                => realpath(APPPATH),
+			APP_NAMESPACE.'\Controllers' => APPPATH.'Controllers'
 		];
 
 		/**

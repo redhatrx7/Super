@@ -205,7 +205,7 @@ class RouteCollection implements RouteCollectionInterface
 	public function __construct(FileLocator $locator)
 	{
 		// Get HTTP verb
-		$this->HTTPVerb = isset($_SERVER['REQUEST_METHOD']) ? strtolower($_SERVER['REQUEST_METHOD']) : 'cli';
+		$this->HTTPVerb = strtolower($_SERVER['REQUEST_METHOD'] ?? 'cli');
 
 		$this->fileLocator = $locator;
 	}
@@ -771,8 +771,7 @@ class RouteCollection implements RouteCollectionInterface
 
 		// In order to allow customization of allowed id values
 		// we need someplace to store them.
-		$id = isset($this->placeholders[$this->defaultPlaceholder]) ? $this->placeholders[$this->defaultPlaceholder] :
-				'(:segment)';
+		$id = $this->placeholders[$this->defaultPlaceholder] ?? '(:segment)';
 
 		if (isset($options['placeholder']))
 		{
@@ -783,6 +782,19 @@ class RouteCollection implements RouteCollectionInterface
 		$id = '(' . trim($id, '()') . ')';
 
 		$methods = isset($options['only']) ? is_string($options['only']) ? explode(',', $options['only']) : $options['only'] : ['index', 'show', 'create', 'update', 'delete', 'new', 'edit'];
+
+		if(isset($options['except']))
+		{
+			$options['except'] = is_array($options['except']) ? $options['except'] : explode(',', $options['except']);
+			$c = count($methods);
+			for($i = 0; $i < $c; $i++)
+			{
+				if(in_array($methods[$i], $options['except']))
+				{
+					unset($methods[$i]);
+				}
+			}
+		}
 
 		if (in_array('index', $methods))
 			$this->get($name, $new_name . '::index', $options);
